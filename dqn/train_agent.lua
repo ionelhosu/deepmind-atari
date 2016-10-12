@@ -75,7 +75,8 @@ local nrewards
 local nepisodes
 local episode_reward
 
-local screen, reward, terminal = game_env:getState()
+local screen, reward, terminal, lives = game_env:getState()
+last_lives = lives
 
 print("Iteration ..", step)
 while step < opt.steps do
@@ -84,12 +85,18 @@ while step < opt.steps do
 
     -- game over? get next game!
     if not terminal then
-        screen, reward, terminal = game_env:step(game_actions[action_index], true)
+        screen, reward, terminal, lives = game_env:step(game_actions[action_index], true)
+        if lives < last_lives then reward = -1 end -- negative reward if life lost
+        last_lives = lives
+        -- print("Lives: "..lives)
+        -- print("Reward: "..reward)
     else
         if opt.random_starts > 0 then
-            screen, reward, terminal = game_env:nextRandomGame()
+            screen, reward, terminal, lives = game_env:nextRandomGame()
+            last_lives = lives
         else
-            screen, reward, terminal = game_env:newGame()
+            screen, reward, terminal, lives = game_env:newGame()
+            last_lives = lives
         end
     end
 
@@ -105,7 +112,10 @@ while step < opt.steps do
 
     if step % opt.eval_freq == 0 and step > learn_start then
 
-        screen, reward, terminal = game_env:newGame()
+        screen, reward, terminal, lives = game_env:newGame()
+
+        if lives < last_lives then reward = -1 end
+        last_lives = lives
 
         total_reward = 0
         nrewards = 0
@@ -117,7 +127,7 @@ while step < opt.steps do
             local action_index = agent:perceive(reward, screen, terminal, true, 0.05)
 
             -- Play game in test mode (episodes don't end when losing a life)
-            screen, reward, terminal = game_env:step(game_actions[action_index])
+            screen, reward, terminal, lives = game_env:step(game_actions[action_index])
 
             if estep%1000 == 0 then collectgarbage() end
 
@@ -131,7 +141,8 @@ while step < opt.steps do
                 total_reward = total_reward + episode_reward
                 episode_reward = 0
                 nepisodes = nepisodes + 1
-                screen, reward, terminal = game_env:nextRandomGame()
+                screen, reward, terminal, lives = game_env:nextRandomGame()
+                last_lives = lives
             end
         end
 
