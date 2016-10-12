@@ -16,6 +16,7 @@ require 'NeuralQLearner'
 require 'TransitionTable'
 require 'Rectifier'
 
+cudnn.fastest = true
 
 function torchSetup(_opt)
     _opt = _opt or {}
