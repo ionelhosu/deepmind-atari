@@ -7,6 +7,7 @@ dqn = {}
 
 require 'torch'
 require 'nn'
+require 'cudnn'
 require 'nngraph'
 require 'nnutils'
 require 'image'

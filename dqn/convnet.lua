@@ -56,6 +56,7 @@ function create_network(args)
 
     if args.gpu >=0 then
         net:cuda()
+        cudnn.convert(net, cudnn)
     end
     if args.verbose >= 2 then
         print(net)
